@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Medical Worker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Medical Workers Management System</h1>
+        <nav>
+            <a href="index.html" class="nav-link">Add Medical Worker</a>
+            <a href="view.html" class="nav-link">View/Delete Workers</a>
+            <a href="edit.html" class="nav-link">Edit Worker</a>
+            <a href="delete-departments.html" class="nav-link">Delete Departments</a>
+            <button onclick="downloadReport()" class="nav-link" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 0.75rem 1.5rem; font-family: inherit; font-size: inherit;">
+                Download Report
+            </button>
+        </nav>
+    </header>
+    <main>
+        <div class="form-container">
+            <h2>Edit Medical Worker</h2>
+            <div class="form-group">
+                <label for="searchWorker">Search Worker to Edit:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="searchWorker" name="searchWorker"
+                           placeholder="Enter ID or name to search" style="flex: 1;">
+                    <button onclick="searchWorker()" class="btn-primary" style="white-space: nowrap;">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <form id="editWorkerForm" style="display: none;">
+                <input type="hidden" id="editWorkerId" name="workerId">
+
+                <div class="form-group">
+                    <label for="editFirstName">First Name:</label>
+                    <input type="text" id="editFirstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editLastName">Last Name:</label>
+                    <input type="text" id="editLastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editEmail">Email:</label>
+                    <input type="email" id="editEmail" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPhoneNumber">Phone Number:</label>
+                    <input type="tel" id="editPhoneNumber" name="phoneNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDepartment">Department:</label>
+                    <select id="editDepartment" name="department" required>
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editSpecialization">Specialization:</label>
+                    <select id="editSpecialization" name="specialization" required>
+                        <option value="">Select Specialization</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editHireDate">Hire Date:</label>
+                    <input type="date" id="editHireDate" name="hireDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editSalary">Salary:</label>
+                    <input type="number" id="editSalary" name="salary" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editLicenseNumber">License Number:</label>
+                    <input type="text" id="editLicenseNumber" name="licenseNumber" required>
+                </div>
+
+                <div id="imageEditorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90%; overflow: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3>Image Editor</h3>
+                            <button onclick="closeImageEditor()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                            <div>
+                                <canvas id="imageCanvas" style="border: 1px solid #ccc; background: #f8f8f8; max-width: 600px; max-height: 400px;"></canvas>
+                                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                                    <button onclick="saveEditedImage()" class="btn-primary" style="padding: 8px 16px;">Save Changes</button>
+                                    <button onclick="closeImageEditor()" class="btn-danger" style="padding: 8px 16px;">Cancel</button>
+                                </div>
+                            </div>
+                            <div style="min-width: 200px;">
+                                <h4 style="margin-bottom: 10px;">Tools</h4>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Brush Size:</label>
+                                    <input type="range" id="brushSize" min="1" max="50" value="5" style="width: 100%;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                        <span>Small</span>
+                                        <span id="brushSizeValue">5</span>
+                                        <span>Large</span>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Brush Color:</label>
+                                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                        <button onclick="setBrushColor('#FF0000')" style="width: 30px; height: 30px; background: #FF0000; border: 2px solid #ccc; cursor: pointer;"></button>
+                                        <button onclick="setBrushColor('#00FF00')" style="width: 30px; height: 30px; background: #00FF00; border: 2px solid #ccc; cursor: pointer;"></button>
+                                        <button onclick="setBrushColor('#0000FF')" style="width: 30px; height: 30px; background: #0000FF; border: 2px solid #ccc; cursor: pointer;"></button>
+                                        <button onclick="setBrushColor('#FFFF00')" style="width: 30px; height: 30px; background: #FFFF00; border: 2px solid #ccc; cursor: pointer;"></button>
+                                        <button onclick="setBrushColor('#FF00FF')" style="width: 30px; height: 30px; background: #FF00FF; border: 2px solid #ccc; cursor: pointer;"></button>
+                                        <button onclick="setBrushColor('#000000')" style="width: 30px; height: 30px; background: #000000; border: 2px solid #ccc; cursor: pointer;"></button>
+                                        <button onclick="setBrushColor('#FFFFFF')" style="width: 30px; height: 30px; background: #FFFFFF; border: 2px solid #ccc; cursor: pointer;"></button>
+                                    </div>
+                                    <div style="margin-top: 5px;">
+                                        <input type="color" id="customColor" value="#FF0000" onchange="setBrushColor(this.value)" style="width: 100%;">
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tools:</label>
+                                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                        <button onclick="setTool('brush')" id="toolBrush" class="btn-primary" style="padding: 8px; font-size: 12px; flex: 1;">Brush</button>
+                                        <button onclick="setTool('eraser')" id="toolEraser" class="btn-primary" style="padding: 8px; font-size: 12px; flex: 1;">Eraser</button>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Actions:</label>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button onclick="undoEdit()" class="btn-primary" style="padding: 8px; font-size: 12px;">Undo</button>
+                                        <button onclick="redoEdit()" class="btn-primary" style="padding: 8px; font-size: 12px;">Redo</button>
+                                        <button onclick="resetImage()" class="btn-danger" style="padding: 8px; font-size: 12px;">Reset to Original</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editImageUpload">Profile Image:</label>
+                    <div style="margin-bottom: 10px;">
+                        <div id="currentImagePreview" style="margin-bottom: 10px;"></div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="file" id="editImageUpload" name="imageUpload" accept="image/*" style="flex: 1;">
+                            <button type="button" class="btn-primary" onclick="openImageEditor()" id="editImageBtn" style="white-space: nowrap; display: none;">Edit Image</button>
+                        </div>
+                    </div>
+                    <small>Upload a new image, edit existing, or leave empty to keep current. Max size: 5MB.</small>
+                    <div id="editImagePreview" style="margin-top: 10px; display: none;">
+                        <img id="editPreviewImage" style="max-width: 150px; max-height: 150px; border-radius: 5px; object-fit: cover;">
+                        <div style="margin-top: 5px;">
+                            <button type="button" class="btn-danger" onclick="cancelImageUpload()" style="font-size: 12px; padding: 5px 10px;">Cancel New Image</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary">Update Worker</button>
+                    <button type="button" class="btn-danger" onclick="cancelEdit()">Cancel</button>
+                    <button type="button" class="btn-danger" onclick="deleteCurrentImage()" id="deleteImageBtn" style="display: none;">Delete Image</button>
+                </div>
+            </form>
+            <div id="editMessage" class="message"></div>
+        </div>
+    </main>
+</div>
+<script src="edit.js"></script>
+</body>
+</html>

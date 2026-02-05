@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Workers Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Medical Workers Management System</h1>
+        <nav>
+            <a href="index.html" class="nav-link">Add Medical Worker</a>
+            <a href="view.html" class="nav-link">View/Delete Workers</a>
+            <a href="edit.html" class="nav-link">Edit Worker</a>
+            <a href="delete-departments.html" class="nav-link">Delete Departments</a>
+            <button onclick="downloadReport()" class="nav-link" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 0.75rem 1.5rem; font-family: inherit; font-size: inherit;">
+                Download Report
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="form-container">
+            <h2>Add New Medical Worker</h2>
+            <form id="workerForm">
+                <div class="form-group">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number:</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="facilityType">Facility Type:</label>
+                    <select id="facilityType" name="facilityType" required onchange="loadDepartments()">
+                        <option value="">Select Facility Type</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department:</label>
+                    <select id="department" name="department" required>
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Specialization:</label>
+                    <select id="specialization" name="specialization" required>
+                        <option value="">Select Specialization</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="hireDate">Hire Date:</label>
+                    <input type="date" id="hireDate" name="hireDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="salary">Salary:</label>
+                    <input type="number" id="salary" name="salary" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="licenseNumber">License Number:</label>
+                    <input type="text" id="licenseNumber" name="licenseNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageUpload">Profile Image (optional):</label>
+                    <input type="file" id="imageUpload" name="imageUpload" accept="image/*">
+                    <small>Max size: 5MB. Supported formats: JPG, PNG, GIF</small>
+                    <div id="imagePreview" style="margin-top: 10px; display: none;">
+                        <img id="previewImage" style="max-width: 150px; max-height: 150px; border-radius: 5px; object-fit: cover;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Add Medical Worker</button>
+            </form>
+            <div id="message" class="message"></div>
+        </div>
+    </main>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

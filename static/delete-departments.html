@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Departments</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Medical Workers Management System</h1>
+        <nav>
+            <a href="index.html" class="nav-link">Add Medical Worker</a>
+            <a href="view.html" class="nav-link">View/Delete Workers</a>
+            <a href="edit.html" class="nav-link">Edit Worker</a>
+            <a href="delete-departments.html" class="nav-link active">Delete Departments</a>
+            <button onclick="downloadReport()" class="nav-link" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 0.75rem 1.5rem; font-family: inherit; font-size: inherit;">
+                Download Report
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="filters">
+            <h2>Delete Departments</h2>
+            <div class="filter-controls">
+                <div class="form-group">
+                    <label for="filterFacilityType">Filter by Facility Type:</label>
+                    <select id="filterFacilityType" onchange="loadDepartments()">
+                        <option value="">All Facility Types</option>
+                    </select>
+                </div>
+            </div>
+            <div id="message" class="message"></div>
+        </div>
+        <div class="workers-table-container">
+            <div class="workers-table-wrapper">
+                <table id="departmentsTable" class="workers-table">
+                    <thead>
+                    <tr>
+                        <th>Department ID</th>
+                        <th>Department Name</th>
+                        <th>Department Head</th>
+                        <th>Location</th>
+                        <th>Phone Number</th>
+                        <th>Facility Type ID</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="departmentsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+<script src="delete-departments.js"></script>
+</body>
+</html>
