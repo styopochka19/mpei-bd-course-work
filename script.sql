@@ -1,5 +1,30 @@
 USE master;
 
+-- Drop tables in correct order due to foreign key constraints
+IF OBJECT_ID('medical_workers', 'U') IS NOT NULL
+DROP TABLE medical_workers;
+
+IF OBJECT_ID('departments', 'U') IS NOT NULL
+DROP TABLE departments;
+
+IF OBJECT_ID('specializations', 'U') IS NOT NULL
+DROP TABLE specializations;
+
+IF OBJECT_ID('facility_types', 'U') IS NOT NULL
+DROP TABLE facility_types;
+
+-- Drop the function if it exists
+IF OBJECT_ID('dbo.fn_FormatMedicalWorkers', 'IF') IS NOT NULL
+DROP FUNCTION dbo.fn_FormatMedicalWorkers;
+
+-- Drop the procedure if it exists
+IF OBJECT_ID('dbo.sp_DisplayMedicalWorkers', 'P') IS NOT NULL
+DROP PROCEDURE dbo.sp_DisplayMedicalWorkers;
+
+-- Drop the view if it exists
+IF OBJECT_ID('vw_MedicalWorkers_Detailed', 'V') IS NOT NULL
+DROP VIEW vw_MedicalWorkers_Detailed;
+
 CREATE TABLE facility_types (
                                 facility_type_id INT PRIMARY KEY IDENTITY(1, 1),
                                 type_name VARCHAR(50) NOT NULL UNIQUE,
@@ -40,9 +65,11 @@ CREATE TABLE medical_workers (
                                  hire_date DATE NOT NULL,
                                  salary DECIMAL(10,2),
                                  license_number VARCHAR(50) UNIQUE,
+                                 image_data VARBINARY(MAX) NULL,
                                  created_date DATETIME2 DEFAULT GETDATE(),
+                                 row_version ROWVERSION NOT NULL,
 
-                                 FOREIGN KEY (department_id) REFERENCES departments(department_id),
+                                 FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE CASCADE,
                                  FOREIGN KEY (specialization_id) REFERENCES specializations(specialization_id)
 );
 
@@ -78,7 +105,7 @@ VALUES
     ('Dermatology Clinic', 'Dr. Robert Brown', 'Clinic Building A', '(555) 123-4572', 2),
     ('Oncology Research', 'Dr. Patricia Lee', 'Research Center', '(555) 123-4573', 5);
 
--- Insert data into medical_workers
+-- Insert data into medical_workers (without images for now)
 INSERT INTO medical_workers (first_name, last_name, email, phone_number, department_id, specialization_id, hire_date, salary, license_number)
 VALUES
     ('Sarah', 'Johnson', 's.johnson@medicalcenter.org', '(555) 111-0001', 1, 1, '2018-03-15', 185000.00, 'CARD123456'),
@@ -95,3 +122,110 @@ VALUES
     ('Brian', 'Taylor', 'b.taylor@medicalcenter.org', '(555) 111-0012', 5, 6, '2023-03-01', 162000.00, 'EME012345'),
     ('Nicole', 'White', 'n.white@medicalcenter.org', '(555) 111-0013', 6, 5, '2021-11-30', 135000.00, 'DER678901'),
     ('Christopher', 'Harris', 'c.harris@medicalcenter.org', '(555) 111-0014', 7, 7, '2019-05-14', 182000.00, 'ONC234567');
+
+
+CREATE VIEW vw_MedicalWorkers_Detailed AS
+SELECT
+    mw.worker_id,
+    mw.first_name,
+    mw.last_name,
+    mw.email,
+    mw.phone_number,
+    mw.department_id,
+    d.department_name,
+    mw.specialization_id,
+    s.specialization_name,
+    mw.hire_date,
+    mw.salary,
+    mw.license_number,
+    mw.image_data,
+    CONVERT(VARCHAR(20), CONVERT(VARBINARY(8), mw.row_version), 1) as row_version
+FROM medical_workers mw
+         LEFT JOIN departments d ON mw.department_id = d.department_id
+         LEFT JOIN specializations s ON mw.specialization_id = s.specialization_id;
+
+IF OBJECT_ID('dbo.fn_GetWorkerExperience', 'FN') IS NOT NULL
+DROP FUNCTION dbo.fn_GetWorkerExperience;
+
+CREATE FUNCTION dbo.fn_GetWorkerExperience(@hire_date DATE)
+    RETURNS NVARCHAR(100)
+                    AS
+BEGIN
+    DECLARE @years INT, @months INT, @days INT;
+    DECLARE @current_date DATE = GETDATE();
+
+    -- Calculate years, months, days difference
+    SET @years = DATEDIFF(YEAR, @hire_date, @current_date);
+    SET @months = DATEDIFF(MONTH, DATEADD(YEAR, @years, @hire_date), @current_date);
+    SET @days = DATEDIFF(DAY, DATEADD(MONTH, @months, DATEADD(YEAR, @years, @hire_date)), @current_date);
+
+    -- Adjust for negative months (if hire date day is greater than current day)
+    IF @days < 0
+BEGIN
+        SET @months = @months - 1;
+        SET @days = @days + DAY(EOMONTH(DATEADD(MONTH, -1, @current_date)));
+END
+
+    IF @months < 0
+BEGIN
+        SET @years = @years - 1;
+        SET @months = @months + 12;
+END
+
+    -- Format the result
+    DECLARE @result NVARCHAR(100);
+
+    IF @years = 0 AND @months = 0
+        SET @result = 'New hire (< 1 month)';
+ELSE IF @years = 0
+        SET @result = CAST(@months AS NVARCHAR(10)) + ' month' + CASE WHEN @months > 1 THEN 's' ELSE '' END;
+ELSE IF @months = 0
+        SET @result = CAST(@years AS NVARCHAR(10)) + ' year' + CASE WHEN @years > 1 THEN 's' ELSE '' END;
+ELSE
+        SET @result = CAST(@years AS NVARCHAR(10)) + ' year' + CASE WHEN @years > 1 THEN 's' ELSE '' END +
+                     ', ' + CAST(@months AS NVARCHAR(10)) + ' month' + CASE WHEN @months > 1 THEN 's' ELSE '' END;
+
+RETURN @result;
+END;
+
+CREATE PROCEDURE dbo.sp_GetDepartmentStatistics
+    AS
+BEGIN
+SELECT
+    d.department_id,
+    d.department_name,
+    ft.type_name as facility_type,
+    d.department_head,
+    d.location,
+    d.phone_number,
+    d.created_date,
+    COUNT(mw.worker_id) as total_workers,
+    AVG(mw.salary) as avg_salary,
+    MIN(mw.salary) as min_salary,
+    MAX(mw.salary) as max_salary,
+    SUM(mw.salary) as total_salary_budget,
+    MIN(mw.hire_date) as earliest_hire_date,
+    MAX(mw.hire_date) as latest_hire_date,
+    COUNT(DISTINCT mw.specialization_id) as unique_specializations_count,
+    -- Add experience statistics
+    AVG(DATEDIFF(YEAR, mw.hire_date, GETDATE())) as avg_years_experience,
+    -- Add most common specialization
+    (SELECT TOP 1 s.specialization_name
+     FROM medical_workers mw2
+              JOIN specializations s ON mw2.specialization_id = s.specialization_id
+     WHERE mw2.department_id = d.department_id
+     GROUP BY mw2.specialization_id, s.specialization_name
+     ORDER BY COUNT(*) DESC) as most_common_specialization
+FROM departments d
+         LEFT JOIN facility_types ft ON d.facility_type_id = ft.facility_type_id
+         LEFT JOIN medical_workers mw ON d.department_id = mw.department_id
+GROUP BY
+    d.department_id,
+    d.department_name,
+    ft.type_name,
+    d.department_head,
+    d.location,
+    d.phone_number,
+    d.created_date
+ORDER BY d.department_name;
+END;
